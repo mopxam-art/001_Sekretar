@@ -2,7 +2,7 @@ const https = require('https');
 const path = require('path');
 
 // Инициализируем Store от оригинального app_lite чтобы вытащить ключ
-const groqKey = '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';
+const groqKey = 'gsk_YOUR_GROQ_API_KEY_HERE';
 
 console.log("Updating n8n...");
 

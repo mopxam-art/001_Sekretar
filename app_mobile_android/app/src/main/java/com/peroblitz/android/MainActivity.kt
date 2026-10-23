@@ -35,7 +35,7 @@ class MainActivity : AppCompatActivity() {
 
         apiKeyInput = EditText(this).apply {
             hint = "Введите API ключ Groq"
-            setText("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")
+            setText("gsk_YOUR_GROQ_API_KEY_HERE")
         }
         layout.addView(apiKeyInput)
 

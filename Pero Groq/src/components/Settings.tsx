@@ -584,6 +584,7 @@ export default function Settings({ onApiKeySaved }: Props) {
               background: 'var(--bg-secondary, #1a1a24)',
               border: `1px solid ${
                 updateStatus.type === 'error' ? 'var(--red, #f87171)' :
+                updateStatus.type === 'not-available' ? 'var(--green, #4ade80)' :
                 updateStatus.type === 'available' || updateStatus.type === 'downloaded' ? 'var(--accent, #6366f1)' :
                 'var(--border, #333)'
               }`,

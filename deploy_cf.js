@@ -2,7 +2,7 @@ const https = require('https');
 const FormData = require('form-data');
 
 const accountId = 'a827714c2919fe3299a0f905be2a1f88';
-const token = 'cfut_ywuGvJ4soaNPr2Wh6Tr1RmX2D5rI0HVSg5IUZ3Rr50379f1e';
+const token = 'cfut_YOUR_CLOUDFLARE_TOKEN_HERE';
 const scriptName = 'groq-proxy';
 
 const scriptContent = `

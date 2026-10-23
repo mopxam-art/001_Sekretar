@@ -17,7 +17,7 @@ const reqOptions = {
   hostname: 'n8n.fond-hub.ru',
   path: '/webhook/transcribe',
   method: 'POST',
-  headers: {'Authorization': 'Bearer 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', ...form.getHeaders()}
+  headers: {'Authorization': 'Bearer gsk_YOUR_GROQ_API_KEY_HERE', ...form.getHeaders()}
 };
 
 console.log("Отправляем тестовый аудиофайл на webhook-test...");

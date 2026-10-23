@@ -30,7 +30,21 @@ class AutoUpdaterManager {
     autoUpdater.autoInstallOnAppQuit = true;
 
     if (!app.isPackaged) {
-      autoUpdater.forceDevUpdateConfig = true;
+      try {
+        const fs = require('fs');
+        const path = require('path');
+        const devConfigPath = path.join(app.getAppPath(), 'dev-app-update.yml');
+        if (!fs.existsSync(devConfigPath)) {
+          fs.writeFileSync(
+            devConfigPath,
+            'owner: mopxam-art\nrepo: 001_Sekretar\nprovider: github\n',
+            'utf8'
+          );
+        }
+        autoUpdater.forceDevUpdateConfig = true;
+      } catch (err) {
+        console.warn('[AutoUpdater] Failed to initialize dev-app-update.yml:', err.message);
+      }
     }
 
     this.setupEventListeners();
@@ -44,11 +58,10 @@ class AutoUpdaterManager {
    * - "https://my-server.com/releases"
    */
   setFeed(urlOrRepo) {
-    if (!urlOrRepo || !urlOrRepo.trim()) return;
-    const str = urlOrRepo.trim();
+    const target = (urlOrRepo && urlOrRepo.trim()) ? urlOrRepo.trim() : 'mopxam-art/001_Sekretar';
     try {
-      if (str.includes('github.com')) {
-        const match = str.match(/github\.com\/([^/]+)\/([^/]+)/);
+      if (target.includes('github.com')) {
+        const match = target.match(/github\.com\/([^/]+)\/([^/]+)/);
         if (match) {
           const owner = match[1];
           const repo = match[2].replace(/\.git$/, '');
@@ -61,8 +74,8 @@ class AutoUpdaterManager {
           return;
         }
       }
-      if (/^[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-]+$/.test(str)) {
-        const [owner, repo] = str.split('/');
+      if (/^[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-]+$/.test(target)) {
+        const [owner, repo] = target.split('/');
         autoUpdater.setFeedURL({
           provider: 'github',
           owner,
@@ -73,9 +86,9 @@ class AutoUpdaterManager {
       }
       autoUpdater.setFeedURL({
         provider: 'generic',
-        url: str
+        url: target
       });
-      console.log(`[AutoUpdater] Configured generic feed URL: ${str}`);
+      console.log(`[AutoUpdater] Configured generic feed URL: ${target}`);
     } catch (err) {
       console.error('[AutoUpdater] Failed to set feed URL:', err.message);
     }
@@ -146,6 +159,13 @@ class AutoUpdaterManager {
     autoUpdater.on('error', (error) => {
       console.error('[AutoUpdater] Error:', error);
 
+      let userMsg = error?.message || 'Неизвестная ошибка';
+      if (userMsg.includes('404')) {
+        userMsg = 'Репозиторий приватный (404 Not Found). Сделайте репозиторий mopxam-art/001_Sekretar публичным (Public) в настройках GitHub, чтобы обновления скачивались без авторизации.';
+      } else if (userMsg.includes('ENOENT') && userMsg.includes('dev-app-update.yml')) {
+        userMsg = 'Файл dev-app-update.yml был автоматически создан. Пожалуйста, нажмите «Проверить обновления» ещё раз.';
+      }
+
       const isNetworkError = !!(error.message && (
         error.message.includes('net::') ||
         error.message.includes('ECONN') ||
@@ -156,7 +176,7 @@ class AutoUpdaterManager {
       ));
 
       this.sendToRenderer('update-error', {
-        message: error.message,
+        message: userMsg,
         isNetworkError
       });
     });

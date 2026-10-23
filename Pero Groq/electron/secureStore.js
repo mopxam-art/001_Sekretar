@@ -195,7 +195,7 @@ const secureStore = {
 
   getGroqApiKey() {
     const key = store.get('groqApiKey', null);
-    if (!key || key.trim() === '') return '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';
+    if (!key || key.trim() === '') return 'gsk_YOUR_GROQ_API_KEY_HERE';
     return key;
   },
 

@@ -1,6 +1,6 @@
 const https = require('https');
 
-const apiKey = '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';
+const apiKey = 'gsk_YOUR_GROQ_API_KEY_HERE';
 
 const reqOptions = {
   hostname: 'api.groq.com',
