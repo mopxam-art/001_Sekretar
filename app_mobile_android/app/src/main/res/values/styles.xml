@@ -1,0 +1,6 @@
+<resources>
+    <style name="Theme.PeroBlitz" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">#20b2aa</item>
+        <item name="colorOnPrimary">#ffffff</item>
+    </style>
+</resources>

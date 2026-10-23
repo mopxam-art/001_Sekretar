@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Перо Блиц</string>
+    <string name="accessibility_service_description">Служба необходима для вставки надиктованного текста в поля ввода.</string>
+</resources>

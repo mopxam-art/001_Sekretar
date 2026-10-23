@@ -1,0 +1,553 @@
+/**
+ * Recording Overlay Styles
+ *
+ * Minimalist design:
+ * - Idle: compact glowing pill
+ * - Recording: expands smoothly to full overlay
+ */
+
+/* ============================================================
+   CSS VARIABLES
+   ============================================================ */
+:root {
+  /* Sizes - minimized */
+  --min-width: 50px;
+  --min-height: 8px;
+
+  /* Sizes - expanded */
+  --full-width: 140px;
+  --full-height: 36px;
+  --expanded-width: 220px;
+
+  /* Colors */
+  --color-bg: rgba(0, 0, 0, 0.35); /* Translucent bubble */
+  --color-border: rgba(255, 255, 255, 0.15);
+  --color-border-glow: rgba(255, 255, 255, 0.15);
+  --color-glow-recording: rgba(255, 165, 0, 0.5); /* Orange instead of red */
+  --color-glow-processing: rgba(0, 150, 255, 0.5); /* Blue instead of orange */
+  --color-white-90: rgba(255, 255, 255, 0.9);
+  --color-status-ready: #4CAF50;
+  --color-status-recording: #ff9800; /* Orange */
+  --color-status-processing: #2196F3; /* Blue */
+
+  /* Animation */
+  --duration: 0.4s;
+  --easing: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ============================================================
+   BASE STYLES
+   ============================================================ */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: transparent;
+  overflow: hidden;
+  user-select: none;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100vw;
+  height: 100vh;
+}
+
+/* ============================================================
+   OVERLAY WRAPPER
+   ============================================================ */
+.overlay-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ============================================================
+   OVERLAY CONTAINER - MINIMIZED (default)
+   ============================================================ */
+.overlay-container {
+  width: var(--min-width);
+  height: var(--min-height);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  cursor: move;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(10px); /* Glassmorphism effect */
+  -webkit-backdrop-filter: blur(10px);
+
+  /* Subtle glow */
+  box-shadow:
+    0 0 8px 2px var(--color-border-glow),
+    0 2px 8px rgba(0, 0, 0, 0.3);
+
+  /* Smooth transitions for all properties */
+  transition:
+    width var(--duration) var(--easing),
+    height var(--duration) var(--easing),
+    box-shadow var(--duration) var(--easing);
+}
+
+/* Hover - slightly larger */
+.overlay-container:not(.expanded):hover {
+  width: calc(var(--min-width) + 8px);
+  box-shadow:
+    0 0 12px 3px var(--color-border-glow),
+    0 2px 10px rgba(0, 0, 0, 0.4);
+}
+
+/* ============================================================
+   OVERLAY CONTAINER - EXPANDED (recording/processing)
+   ============================================================ */
+.overlay-container.expanded {
+  width: var(--full-width);
+  height: var(--full-height);
+  padding: 0 12px;
+  gap: 8px;
+  justify-content: space-between;
+
+  /* Recording glow */
+  box-shadow:
+    0 0 16px 4px var(--color-glow-recording),
+    0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+.overlay-container.expanded:hover {
+  transform: scale(1.02);
+}
+
+/* Meeting active - wider */
+.overlay-container.expanded.meeting-active {
+  width: var(--expanded-width);
+}
+
+/* Processing glow */
+.overlay-container.expanded.processing {
+  box-shadow:
+    0 0 16px 4px var(--color-glow-processing),
+    0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+/* ============================================================
+   DRAG AREA
+   ============================================================ */
+.drag-area {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  -webkit-app-region: drag;
+  z-index: 1;
+}
+
+/* In minimized state, disable drag to allow click-to-start-recording */
+.overlay-container:not(.expanded) .drag-area {
+  -webkit-app-region: no-drag;
+  cursor: pointer;
+}
+
+/* ============================================================
+   INNER CONTENT (hidden when minimized)
+   ============================================================ */
+.overlay-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  opacity: 0;
+  visibility: hidden;
+  position: relative;
+  z-index: 5;
+  transition:
+    opacity 0.2s ease 0.1s,
+    visibility 0.2s ease 0.1s;
+}
+
+.overlay-container.expanded .overlay-content {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* In expanded state, disable drag area to allow button clicks */
+.overlay-container.expanded .drag-area {
+  pointer-events: none;
+}
+
+/* ============================================================
+   STOP BUTTON
+   ============================================================ */
+.stop-btn {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  background: rgba(255, 68, 68, 0.9);
+  border: none;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  -webkit-app-region: no-drag;
+  z-index: 10;
+  flex-shrink: 0;
+  padding: 0;
+}
+
+.stop-btn svg {
+  width: 10px;
+  height: 10px;
+}
+
+.stop-btn:hover {
+  background: rgba(255, 68, 68, 1);
+  transform: scale(1.1);
+}
+
+/* Status dot (hidden, used for state tracking) */
+.status-dot {
+  display: none;
+}
+
+.status-dot.recording,
+.status-dot.processing {
+  /* State classes still used by JS */
+}
+
+/* ============================================================
+   AUDIO BARS
+   ============================================================ */
+.audio-bars {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.audio-bar {
+  width: 2px;
+  background: rgba(255, 255, 255, 0.4);
+  border-radius: 1px;
+  height: 3px;
+}
+
+.audio-bar:nth-child(1) { height: 4px; }
+.audio-bar:nth-child(2) { height: 8px; }
+.audio-bar:nth-child(3) { height: 3px; }
+.audio-bar:nth-child(4) { height: 6px; }
+.audio-bar:nth-child(5) { height: 4px; }
+
+/* Recording animation */
+.recording .audio-bar {
+  background: rgba(255, 255, 255, 0.9);
+  animation: wave 0.6s ease-in-out infinite;
+}
+
+.recording .audio-bar:nth-child(1) { animation-delay: 0s; }
+.recording .audio-bar:nth-child(2) { animation-delay: 0.1s; }
+.recording .audio-bar:nth-child(3) { animation-delay: 0.2s; }
+.recording .audio-bar:nth-child(4) { animation-delay: 0.3s; }
+.recording .audio-bar:nth-child(5) { animation-delay: 0.4s; }
+
+/* Processing animation */
+.processing .audio-bar {
+  background: var(--color-status-processing);
+  animation: pulse-bars 1s ease-in-out infinite;
+}
+
+/* ============================================================
+   TIMER
+   ============================================================ */
+.timer-text {
+  color: var(--color-white-90);
+  font-size: 11px;
+  font-weight: 600;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', monospace;
+  letter-spacing: 0.3px;
+  min-width: 35px;
+  text-align: right;
+  flex-shrink: 0;
+  margin-right: 4px;
+}
+
+.timer-text.warning {
+  color: var(--color-status-processing);
+  animation: pulse-warning 1s infinite;
+}
+
+.timer-text.danger {
+  color: var(--color-status-recording);
+  animation: pulse-danger 0.5s infinite;
+}
+
+/* ============================================================
+   TAB-COMPLETE INDICATOR
+   ============================================================ */
+.tab-complete-indicator {
+  display: none;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  background: rgba(138, 43, 226, 0.25);
+  border: 1px solid rgba(138, 43, 226, 0.5);
+  border-radius: 12px;
+  -webkit-app-region: no-drag;
+  z-index: 10;
+  flex-shrink: 0;
+  margin-right: 4px;
+}
+
+.tab-complete-indicator.active {
+  display: flex;
+  animation: pulse-ai 1s infinite;
+}
+
+.ai-icon {
+  width: 12px;
+  height: 12px;
+  color: rgba(200, 150, 255, 0.95);
+  animation: spin-slow 2s linear infinite;
+}
+
+.tab-complete-text {
+  color: rgba(200, 150, 255, 0.95);
+  font-size: 10px;
+  font-weight: 700;
+  font-family: system-ui, sans-serif;
+  letter-spacing: 0.5px;
+}
+
+@keyframes pulse-ai {
+  0%, 100% {
+    box-shadow: 0 0 8px rgba(138, 43, 226, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 16px rgba(138, 43, 226, 0.7);
+  }
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ============================================================
+   MEETING INDICATOR
+   ============================================================ */
+.meeting-indicator {
+  display: none;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  background: rgba(255, 68, 68, 0.2);
+  border: 1px solid rgba(255, 68, 68, 0.4);
+  border-radius: 12px;
+  -webkit-app-region: no-drag;
+  z-index: 10;
+  flex-shrink: 0;
+  margin-right: 4px;
+}
+
+.meeting-indicator.active {
+  display: flex;
+  animation: pulse-meeting 1.5s infinite;
+}
+
+.meeting-icon {
+  width: 12px;
+  height: 12px;
+  color: var(--color-white-90);
+}
+
+.meeting-time {
+  color: var(--color-white-90);
+  font-size: 10px;
+  font-weight: 600;
+  font-family: monospace;
+}
+
+/* ============================================================
+   CLOSE BUTTON
+   ============================================================ */
+.close-btn {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(255, 68, 68, 0.2);
+  border: 1px solid rgba(255, 68, 68, 0.4);
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 12px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  -webkit-app-region: no-drag;
+  z-index: 10;
+  flex-shrink: 0;
+}
+
+.close-btn:hover {
+  background: rgba(255, 68, 68, 0.9);
+  border-color: rgba(255, 68, 68, 1);
+  color: white;
+  transform: scale(1.1);
+}
+
+/* ============================================================
+   STREAMING TEXT (hidden)
+   ============================================================ */
+.streaming-text,
+.status-text {
+  display: none;
+}
+
+/* ============================================================
+   ANIMATIONS
+   ============================================================ */
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(255, 68, 68, 0.7);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(255, 68, 68, 0);
+    transform: scale(1.1);
+  }
+}
+
+@keyframes wave {
+  0%, 100% { height: 3px; }
+  50% { height: 14px; }
+}
+
+@keyframes pulse-bars {
+  0%, 100% { opacity: 0.4; transform: scaleY(1); }
+  50% { opacity: 1; transform: scaleY(1.5); }
+}
+
+@keyframes pulse-warning {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes pulse-danger {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.05); }
+}
+
+@keyframes pulse-meeting {
+  0%, 100% {
+    background: rgba(255, 68, 68, 0.2);
+    border-color: rgba(255, 68, 68, 0.4);
+  }
+  50% {
+    background: rgba(255, 68, 68, 0.3);
+    border-color: rgba(255, 68, 68, 0.6);
+  }
+}
+
+/* Subtle breathing for minimized state */
+@keyframes breathe {
+  0%, 100% {
+    box-shadow:
+      0 0 8px 2px var(--color-border-glow),
+      0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+  50% {
+    box-shadow:
+      0 0 12px 3px rgba(255, 255, 255, 0.2),
+      0 2px 10px rgba(0, 0, 0, 0.35);
+  }
+}
+
+/* FIX: Disabled breathe animation - it causes GPU conflicts with fullscreen games */
+/* .overlay-container:not(.expanded) {
+  animation: breathe 3s ease-in-out infinite;
+} */
+.overlay-container:not(.expanded) {
+  /* Static subtle glow instead of animation */
+  box-shadow:
+    0 0 8px 2px var(--color-border-glow),
+    0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* U6 (28.04.2026): first-run tooltip что overlay перетаскиваемый.
+   pointer-events: none — мышь проходит сквозь, не блокирует drag/click. */
+.drag-hint {
+  position: absolute;
+  bottom: -32px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.85);
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease-out;
+  -webkit-app-region: no-drag;
+}
+.drag-hint.visible {
+  opacity: 1;
+}
+
+/* ============================================================
+   PROCESSING SPINNER
+   ============================================================ */
+.processing-spinner {
+  display: none;
+  width: 16px;
+  height: 16px;
+  animation: rotate 2s linear infinite;
+  flex-shrink: 0;
+  margin-right: 4px;
+}
+.spinner-svg .path {
+  stroke: var(--color-status-processing);
+  stroke-linecap: round;
+  animation: dash 1.5s ease-in-out infinite;
+}
+@keyframes rotate { 100% { transform: rotate(360deg); } }
+@keyframes dash {
+  0% { stroke-dasharray: 1, 150; stroke-dashoffset: 0; }
+  50% { stroke-dasharray: 90, 150; stroke-dashoffset: -35; }
+  100% { stroke-dasharray: 90, 150; stroke-dashoffset: -124; }
+}
+
+/* ============================================================
+   SCANNING PROCESSING ANIMATION (Minimized)
+   ============================================================ */
+.overlay-container:not(.expanded).processing {
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 0 10px 2px rgba(124, 106, 247, 0.4);
+  border-color: rgba(124, 106, 247, 0.5);
+}
+.overlay-container:not(.expanded).processing::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; bottom: 0;
+  width: 40%;
+  background: linear-gradient(90deg, transparent, rgba(124, 106, 247, 0.8), transparent);
+  animation: scan-runner 1s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+@keyframes scan-runner {
+  0% { transform: translateX(-50%); }
+  100% { transform: translateX(250%); }
+}

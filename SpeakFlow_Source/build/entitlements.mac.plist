@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <!-- Required for Electron apps with hardened runtime -->
+    <key>com.apple.security.cs.allow-jit</key>
+    <true/>
+    <key>com.apple.security.cs.allow-unsigned-executable-memory</key>
+    <true/>
+    <key>com.apple.security.cs.allow-dyld-environment-variables</key>
+    <true/>
+    <key>com.apple.security.cs.disable-library-validation</key>
+    <true/>
+
+    <!-- Microphone access for voice input -->
+    <key>com.apple.security.device.audio-input</key>
+    <true/>
+
+    <!-- Screen recording for meeting capture and system audio -->
+    <key>com.apple.security.device.camera</key>
+    <false/>
+
+    <!-- Required for getDisplayMedia and screen capture -->
+    <key>com.apple.security.cs.disable-executable-page-protection</key>
+    <true/>
+
+    <!-- Accessibility for text insertion -->
+    <key>com.apple.security.automation.apple-events</key>
+    <true/>
+    <key>com.apple.security.temporary-exception.apple-events</key>
+    <array>
+      <string>com.apple.systemevents</string>
+    </array>
+  </dict>
+</plist>

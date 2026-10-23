@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assistant</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Compact State: Круглая кнопка -->
+    <div class="assistant-container compact" id="assistantContainer">
+
+        <!-- COMPACT: Только круг с play -->
+        <div class="compact-view" id="compactView">
+            <button class="play-button" id="startBtn" title="Начать">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                    <path d="M5 3.5v9l7-4.5z"/>
+                </svg>
+            </button>
+        </div>
+
+        <!-- EXPANDED: Полное окно ассистента -->
+        <div class="expanded-view" id="expandedView" style="display: none;">
+
+            <!-- Toolbar: Минималистичный верх с кнопками -->
+            <div class="toolbar">
+                <div class="toolbar-left">
+                    <button class="icon-button record-indicator" title="Запись">
+                        <svg width="10" height="10" viewBox="0 0 10 10" fill="#ff3b30">
+                            <circle cx="5" cy="5" r="4"/>
+                        </svg>
+                    </button>
+                    <span class="time-label" id="timer">0:00</span>
+                </div>
+
+                <div class="toolbar-right">
+                    <button class="icon-button" id="systemAudioToggle" title="Системный звук">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <path d="M11 5L6 9H2v6h4l5 4V5z"/>
+                            <path class="sound-waves" d="M15.5 8.5c.79.64 1.5 1.73 1.5 3.5s-.71 2.86-1.5 3.5"/>
+                        </svg>
+                    </button>
+                    <button class="icon-button" id="saveNoteBtn" title="Сохранить">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M12 14H4c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h6l4 4v6c0 1.1-.9 2-2 2z"/>
+                            <path d="M10 2v4h4"/>
+                        </svg>
+                    </button>
+                    <button class="icon-button danger" id="finishBtn" title="Завершить">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                            <rect x="4" y="4" width="8" height="8" rx="1"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Messages: Чистая область для сообщений -->
+            <div class="messages" id="chatContent">
+                <div class="empty-state">Слушаю...</div>
+            </div>
+
+            <!-- Input Bar: Минималистичный input внизу -->
+            <div class="input-bar">
+                <input
+                    type="text"
+                    class="message-input"
+                    placeholder="Задайте вопрос"
+                    id="assistInput"
+                />
+            </div>
+
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

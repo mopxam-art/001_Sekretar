@@ -1,0 +1,151 @@
+.onboarding-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.onboarding-modal {
+  background: #1a1a1a;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 440px;
+  padding: 32px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  animation: modal-enter 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modal-enter {
+  from { opacity: 0; transform: translateY(20px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.onboarding-logo {
+  width: 48px;
+  height: 48px;
+  margin-bottom: 16px;
+}
+
+.onboarding-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 8px;
+}
+
+.onboarding-subtitle {
+  font-size: 14px;
+  color: #888;
+  line-height: 1.4;
+  margin-bottom: 24px;
+}
+
+.onboarding-content {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.onboarding-instruction {
+  font-size: 14px;
+  color: #aaa;
+  line-height: 1.5;
+}
+
+.auth-methods {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.auth-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  padding: 14px;
+  border-radius: 12px;
+  border: none;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #fff;
+}
+
+.auth-btn.telegram {
+  background: #2AABEE;
+}
+.auth-btn.telegram:hover {
+  background: #229ED9;
+}
+
+.auth-btn.email {
+  background: #333;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.auth-btn.email:hover {
+  background: #444;
+}
+
+.waiting-state, .success-state {
+  padding: 32px 0;
+  align-items: center;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  border-top-color: #2AABEE;
+  animation: spin 1s ease-in-out infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.success-icon {
+  margin-bottom: 16px;
+  animation: pop-in 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes pop-in {
+  0% { transform: scale(0.5); opacity: 0; }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.onboarding-footer {
+  margin-top: 24px;
+  font-size: 11px;
+  color: #666;
+  line-height: 1.5;
+}
+
+.onboarding-link {
+  color: #888;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.onboarding-link:hover {
+  color: #fff;
+  text-decoration: underline;
+}

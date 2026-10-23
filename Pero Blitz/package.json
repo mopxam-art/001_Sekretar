@@ -1,0 +1,139 @@
+{
+  "name": "pero-blitz-pro",
+  "version": "1.0.0",
+  "description": "AI-powered voice input — Pero Blitz PRO",
+  "main": "electron/main.js",
+  "scripts": {
+    "dev": "concurrently \"vite\" \"wait-on http://127.0.0.1:5174 && electron .\"",
+    "build": "vite build",
+    "electron": "electron .",
+    "start": "electron .",
+    "dist:win": "npm run build && node scripts/obfuscate.js && electron-builder --win --x64 --publish never"
+  },
+  "dependencies": {
+    "@mantine/core": "^8.3.5",
+    "@mantine/hooks": "^8.3.5",
+    "@nut-tree-fork/nut-js": "^4.2.6",
+    "@radix-ui/react-label": "^2.1.7",
+    "@radix-ui/react-select": "^2.2.6",
+    "@radix-ui/react-slot": "^1.2.3",
+    "@radix-ui/react-switch": "^1.2.6",
+    "@radix-ui/react-tabs": "^1.1.13",
+    "@tiptap/core": "^3.11.0",
+    "@tiptap/extension-history": "^3.10.7",
+    "@tiptap/extension-placeholder": "^3.11.0",
+    "@tiptap/extensions": "^3.10.7",
+    "@tiptap/pm": "^3.11.0",
+    "@tiptap/react": "^3.11.0",
+    "@tiptap/starter-kit": "^3.11.0",
+    "active-win": "^8.2.1",
+    "axios": "^1.7.9",
+    "clsx": "^2.1.1",
+    "concurrently": "^9.1.2",
+    "crypto-js": "^4.2.0",
+    "dotenv": "^17.2.3",
+    "electron-audio-loopback": "^1.0.6",
+    "electron-clipboard-watcher": "^1.0.1",
+    "electron-log": "^5.4.3",
+    "electron-store": "^8.2.0",
+    "electron-updater": "^6.6.2",
+    "form-data": "^4.0.6",
+    "https-proxy-agent": "^9.1.0",
+    "lucide-react": "^0.544.0",
+    "node-global-key-listener": "^0.1.1",
+    "node-machine-id": "^1.1.12",
+    "node-screenshots": "^0.2.1",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "tailwind-merge": "^3.3.1",
+    "tailwindcss": "^3.4.17",
+    "tree-kill": "^1.2.2",
+    "wait-on": "^8.0.3",
+    "ws": "^8.18.3"
+  },
+  "optionalDependencies": {
+    "keysender": "^2.4.0",
+    "win-audio": "^3.0.5"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.1",
+    "@types/react-dom": "^19.1.1",
+    "@vitejs/plugin-react": "^4.4.1",
+    "electron": "^36.4.0",
+    "electron-builder": "^25.1.8",
+    "javascript-obfuscator": "^4.1.1",
+    "vite": "^6.3.5",
+    "vite-plugin-electron": "^0.29.0"
+  },
+  "build": {
+    "appId": "com.peroblitz.pro",
+    "productName": "Pero Blitz",
+    "copyright": "Copyright © 2026 Pero Blitz",
+    "electronDist": "node_modules/electron/dist",
+    "electronVersion": "36.9.5",
+    "extraMetadata": {
+      "main": "electron-obf/main.js"
+    },
+    "directories": {
+      "output": "release",
+      "buildResources": "public"
+    },
+    "files": [
+      "dist/**/*",
+      "electron-obf/**/*",
+      "groqService-obf.js",
+      "node_modules/**/*",
+      "!node_modules/.cache/**/*",
+      "!**/*.map",
+      "!electron/**/*",
+      "!groqService.js"
+    ],
+    "extraResources": [
+      {
+        "from": "public/logo.png",
+        "to": "logo.png"
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "public/logo.png",
+      "requestedExecutionLevel": "asInvoker"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Pero Blitz",
+      "deleteAppDataOnUninstall": false,
+      "runAfterFinish": true
+    },
+    "publish": {
+      "provider": "generic",
+      "url": "http://example.com"
+    },
+    "protocols": {
+      "name": "Pero Blitz URL",
+      "schemes": [
+        "peroblitz"
+      ]
+    },
+    "asar": true,
+    "npmRebuild": false,
+    "asarUnpack": [
+      "node_modules/@nut-tree-fork/**",
+      "node_modules/node-global-key-listener/**",
+      "node_modules/active-win/**",
+      "node_modules/keysender/**",
+      "node_modules/win-audio/**"
+    ]
+  }
+}

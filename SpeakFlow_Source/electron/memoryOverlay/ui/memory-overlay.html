@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Voice Memory</title>
+  <style>
+    :root {
+      --color-bg: rgba(20, 20, 20, 0.95);
+      --color-border: rgba(255, 255, 255, 0.15);
+      --color-white: rgba(255, 255, 255, 0.9);
+      --color-white-dim: rgba(255, 255, 255, 0.5);
+      --color-red: #ff4444;
+      --color-red-dim: rgba(255, 68, 68, 0.2);
+      --color-green: #4CAF50;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+      background: transparent;
+      overflow: hidden;
+      -webkit-app-region: drag;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    .overlay-card {
+      width: 320px;
+      background: var(--color-bg);
+      border-radius: 14px;
+      border: 1px solid var(--color-border);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+      overflow: hidden;
+      -webkit-app-region: no-drag;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .header-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 7px;
+      background: var(--color-red);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .header-icon svg {
+      width: 14px;
+      height: 14px;
+      color: white;
+    }
+
+    .header-title {
+      flex: 1;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--color-white);
+    }
+
+    .close-btn {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: none;
+      background: var(--color-red-dim);
+      color: var(--color-white-dim);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+      flex-shrink: 0;
+      font-size: 12px;
+      font-weight: bold;
+    }
+
+    .close-btn:hover {
+      background: var(--color-red);
+      color: white;
+    }
+
+    /* Content */
+    .content {
+      padding: 20px 14px;
+    }
+
+    /* Recording state */
+    .recording-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .mic-btn {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: var(--color-red);
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      position: relative;
+      transition: transform 0.15s;
+    }
+
+    .mic-btn:hover {
+      transform: scale(1.05);
+    }
+
+    .mic-btn.recording::before {
+      content: '';
+      position: absolute;
+      inset: -3px;
+      border-radius: 50%;
+      background: rgba(255, 68, 68, 0.3);
+      animation: pulse-ring 1.2s ease-out infinite;
+    }
+
+    .mic-btn svg {
+      width: 22px;
+      height: 22px;
+      color: white;
+      position: relative;
+      z-index: 1;
+    }
+
+    @keyframes pulse-ring {
+      0% { transform: scale(1); opacity: 1; }
+      100% { transform: scale(1.5); opacity: 0; }
+    }
+
+    .timer {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--color-white);
+      font-variant-numeric: tabular-nums;
+      font-family: -apple-system, BlinkMacSystemFont, monospace;
+    }
+
+    .hint {
+      font-size: 11px;
+      color: var(--color-white-dim);
+    }
+
+    /* Processing state */
+    .processing-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .spinner {
+      width: 32px;
+      height: 32px;
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      border-top-color: var(--color-white);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .status-text {
+      font-size: 12px;
+      color: var(--color-white-dim);
+    }
+
+    /* Result state */
+    .result-state {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .query-row {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      font-size: 11px;
+    }
+
+    .query-label {
+      color: var(--color-white-dim);
+      flex-shrink: 0;
+    }
+
+    .query-text {
+      color: var(--color-white);
+    }
+
+    .result-box {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      padding: 10px;
+      max-height: 120px;
+      overflow-y: auto;
+    }
+
+    .result-box::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .result-box::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 2px;
+    }
+
+    .result-text {
+      font-size: 12px;
+      color: var(--color-white);
+      line-height: 1.5;
+      white-space: pre-wrap;
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: none;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+    }
+
+    .btn-primary {
+      background: var(--color-green);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      filter: brightness(1.1);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--color-white);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    .btn svg {
+      width: 12px;
+      height: 12px;
+    }
+
+    /* Error state */
+    .error-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .error-text {
+      color: var(--color-red);
+      font-size: 12px;
+      text-align: center;
+    }
+
+    /* Hidden */
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+  <div class="overlay-card">
+    <!-- Header -->
+    <div class="header">
+      <div class="header-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+          <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+          <line x1="12" x2="12" y1="19" y2="22"/>
+        </svg>
+      </div>
+      <span class="header-title" id="header-title">Voice Memory</span>
+      <button class="close-btn" id="close-btn">×</button>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+      <!-- Recording -->
+      <div id="recording-state" class="recording-state">
+        <button class="mic-btn recording" id="mic-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+            <line x1="12" x2="12" y1="19" y2="22"/>
+          </svg>
+        </button>
+        <div class="timer" id="timer">0:00</div>
+        <div class="hint">Нажмите для остановки</div>
+      </div>
+
+      <!-- Processing -->
+      <div id="processing-state" class="processing-state hidden">
+        <div class="spinner"></div>
+        <p class="status-text" id="processing-text">Обработка...</p>
+      </div>
+
+      <!-- Error -->
+      <div id="error-state" class="error-state hidden">
+        <p class="error-text" id="error-text">Ошибка</p>
+        <button class="btn btn-secondary" id="error-retry-btn">Попробовать снова</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let isRecording = false;
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let timerInterval = null;
+    let startTime = 0;
+    let generatedPrompt = '';
+    let recordingMimeType = 'audio/webm';
+
+    const headerTitle = document.getElementById('header-title');
+    const recordingState = document.getElementById('recording-state');
+    const processingState = document.getElementById('processing-state');
+    const errorState = document.getElementById('error-state');
+    const micBtn = document.getElementById('mic-btn');
+    const timer = document.getElementById('timer');
+    const processingText = document.getElementById('processing-text');
+    const errorText = document.getElementById('error-text');
+    const closeBtn = document.getElementById('close-btn');
+    const errorRetryBtn = document.getElementById('error-retry-btn');
+
+    function showState(state) {
+      recordingState.classList.add('hidden');
+      processingState.classList.add('hidden');
+      errorState.classList.add('hidden');
+
+      switch (state) {
+        case 'recording':
+          recordingState.classList.remove('hidden');
+          headerTitle.textContent = 'Говорите...';
+          break;
+        case 'processing':
+          processingState.classList.remove('hidden');
+          headerTitle.textContent = 'Обработка...';
+          break;
+        case 'error':
+          errorState.classList.remove('hidden');
+          headerTitle.textContent = 'Ошибка';
+          break;
+      }
+    }
+
+    async function startRecording() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+        // Выбираем поддерживаемый формат
+        let mimeType = 'audio/webm;codecs=opus';
+        if (!MediaRecorder.isTypeSupported(mimeType)) {
+          mimeType = 'audio/webm';
+          if (!MediaRecorder.isTypeSupported(mimeType)) {
+            mimeType = 'audio/ogg;codecs=opus';
+            if (!MediaRecorder.isTypeSupported(mimeType)) {
+              mimeType = ''; // Браузер выберет сам
+            }
+          }
+        }
+        console.log('[MemoryOverlay] Using mimeType:', mimeType || 'default');
+
+        const options = mimeType ? { mimeType } : {};
+        mediaRecorder = new MediaRecorder(stream, options);
+        recordingMimeType = mediaRecorder.mimeType || 'audio/webm';
+        console.log('[MemoryOverlay] Actual mimeType:', recordingMimeType);
+        audioChunks = [];
+
+        mediaRecorder.ondataavailable = (e) => {
+          console.log('[MemoryOverlay] Chunk received:', e.data.size);
+          if (e.data.size > 0) audioChunks.push(e.data);
+        };
+
+        mediaRecorder.onstop = async () => {
+          console.log('[MemoryOverlay] Recording stopped, chunks:', audioChunks.length);
+          stream.getTracks().forEach(track => track.stop());
+          await processRecording();
+        };
+
+        // Не используем timeslice - получаем один большой chunk в конце
+        mediaRecorder.start();
+        isRecording = true;
+        startTime = Date.now();
+        micBtn.classList.add('recording');
+
+        timerInterval = setInterval(() => {
+          const elapsed = Math.floor((Date.now() - startTime) / 1000);
+          const mins = Math.floor(elapsed / 60);
+          const secs = elapsed % 60;
+          timer.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+        }, 100);
+
+        showState('recording');
+      } catch (err) {
+        console.error('Recording error:', err);
+        showError('Нет доступа к микрофону');
+      }
+    }
+
+    function stopRecording() {
+      if (mediaRecorder && isRecording) {
+        clearInterval(timerInterval);
+        mediaRecorder.stop();
+        isRecording = false;
+        micBtn.classList.remove('recording');
+      }
+    }
+
+    async function processRecording() {
+      showState('processing');
+      processingText.textContent = 'Распознаю речь...';
+
+      try {
+        const blob = new Blob(audioChunks, { type: recordingMimeType });
+        console.log('[MemoryOverlay] Blob size:', blob.size, 'type:', blob.type);
+
+        if (blob.size < 1000) {
+          showError('Слишком короткая запись');
+          return;
+        }
+
+        // Get auth config from main process
+        const config = await window.memoryAPI.getConfig();
+        if (!config.token) {
+          showError('Не авторизован');
+          return;
+        }
+
+        // Определяем расширение файла по mimeType
+        let ext = 'webm';
+        if (recordingMimeType.includes('ogg')) ext = 'ogg';
+        else if (recordingMimeType.includes('mp4')) ext = 'm4a';
+        else if (recordingMimeType.includes('wav')) ext = 'wav';
+
+        // Transcribe using browser's native fetch (works with FormData)
+        const formData = new FormData();
+        formData.append('audio', blob, `audio.${ext}`);
+        formData.append('provider', 'deepgram');
+        formData.append('language', 'ru');
+
+        const transcribeRes = await fetch(`${config.apiUrl}/api/transcription/transcribe`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${config.token}`,
+            'x-device-id': 'memory-overlay'
+          },
+          body: formData
+        });
+
+        if (!transcribeRes.ok) {
+          const err = await transcribeRes.json().catch(() => ({}));
+          showError(err.error || `Ошибка: ${transcribeRes.status}`);
+          return;
+        }
+
+        const transcribeData = await transcribeRes.json();
+        const query = transcribeData.text || transcribeData.transcript;
+
+        if (!query) {
+          showError('Не распознано');
+          return;
+        }
+
+        // Search memory
+        processingText.textContent = 'Ищу в памяти...';
+        const searchResult = await window.memoryAPI.search(query);
+
+        if (searchResult.error) {
+          showError(searchResult.error);
+          return;
+        }
+
+        generatedPrompt = searchResult.prompt || searchResult.result || '';
+
+        if (!generatedPrompt) {
+          showError('Ничего не найдено');
+          return;
+        }
+
+        // Авто-вставка результата
+        processingText.textContent = 'Вставляю...';
+        await window.memoryAPI.insertText(generatedPrompt);
+      } catch (err) {
+        console.error('Process error:', err);
+        showError('Ошибка обработки');
+      }
+    }
+
+    function showError(msg) {
+      errorText.textContent = msg;
+      showState('error');
+    }
+
+    function reset() {
+      timer.textContent = '0:00';
+      queryText.textContent = '';
+      resultText.textContent = '';
+      generatedPrompt = '';
+      startRecording();
+    }
+
+    async function insertResult() {
+      if (generatedPrompt) {
+        await window.memoryAPI.insertText(generatedPrompt);
+      } else {
+        window.memoryAPI.close();
+      }
+    }
+
+    closeBtn.addEventListener('click', () => {
+      stopRecording();
+      window.memoryAPI.close();
+    });
+
+    micBtn.addEventListener('click', stopRecording);
+    errorRetryBtn.addEventListener('click', reset);
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        stopRecording();
+        window.memoryAPI.close();
+      }
+    });
+
+    window.memoryAPI.onReset(() => reset());
+    window.addEventListener('load', () => startRecording());
+  </script>
+</body>
+</html>

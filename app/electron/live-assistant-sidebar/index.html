@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Assistant</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="sidebar-container" id="sidebarContainer">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <div class="record-dot"></div>
+                <span class="timer" id="timer">0:00</span>
+                <span class="platform" id="platform"></span>
+            </div>
+            <div class="header-right">
+                <button class="icon-btn" id="minimizeBtn" title="Свернуть">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/>
+                    </svg>
+                </button>
+                <button class="icon-btn danger" id="finishBtn" title="Завершить">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <rect x="6" y="6" width="12" height="12" rx="2"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Speaker Info (показывается когда определен собеседник) -->
+        <div class="speaker-info" id="speakerInfo" style="display: none;">
+            <div class="speaker-avatar" id="speakerAvatar">?</div>
+            <div class="speaker-details">
+                <div class="speaker-name" id="speakerName">Собеседник</div>
+                <div class="speaker-role" id="speakerRole"></div>
+            </div>
+        </div>
+
+        <!-- Transcript area -->
+        <div class="transcript-area" id="transcriptArea">
+            <div class="empty-state" id="emptyState">
+                <div class="empty-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                        <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                        <line x1="12" y1="19" x2="12" y2="23"/>
+                        <line x1="8" y1="23" x2="16" y2="23"/>
+                    </svg>
+                </div>
+                <div class="empty-text">Слушаю разговор...</div>
+            </div>
+            <div class="messages" id="messages"></div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="quick-actions" id="quickActions">
+            <button class="quick-action-btn" data-action="next" title="Что сказать дальше">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M5 12h14M12 5l7 7-7 7"/>
+                </svg>
+                <span>Что сказать</span>
+            </button>
+            <button class="quick-action-btn" data-action="questions" title="Уточняющие вопросы">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+                <span>Вопросы</span>
+            </button>
+            <button class="quick-action-btn" data-action="recap" title="Краткое резюме">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                    <line x1="16" y1="13" x2="8" y2="13"/>
+                    <line x1="16" y1="17" x2="8" y2="17"/>
+                </svg>
+                <span>Резюме</span>
+            </button>
+            <button class="quick-action-btn" data-action="objection" title="Ответ на возражение">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+                <span>Возражение</span>
+            </button>
+        </div>
+
+        <!-- Input bar -->
+        <div class="input-bar">
+            <input type="text" class="input-field" id="inputField" placeholder="Спросить AI...">
+            <button class="send-btn" id="sendBtn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="22" y1="2" x2="11" y2="13"/>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

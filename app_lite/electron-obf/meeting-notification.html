@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meeting Notification</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: transparent;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        .notification-container {
+            position: relative;
+            width: 320px;
+            background: rgba(24, 24, 27, 0.96);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            backdrop-filter: blur(40px) saturate(120%);
+            -webkit-backdrop-filter: blur(40px) saturate(120%);
+            box-shadow:
+                0 20px 60px rgba(0, 0, 0, 0.5),
+                0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: slideInRight 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(239, 68, 68, 0.15);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .icon svg {
+            width: 20px;
+            height: 20px;
+            stroke: #ef4444;
+        }
+
+        .text-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .platform {
+            font-size: 14px;
+            font-weight: 600;
+            color: #ffffff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            letter-spacing: -0.01em;
+        }
+
+        .subtitle {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.5);
+            margin-top: 2px;
+        }
+
+        .btn-start {
+            width: 72px;
+            height: 36px;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            letter-spacing: -0.01em;
+            background: #ef4444;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .btn-start:hover {
+            background: #dc2626;
+            transform: scale(1.02);
+        }
+
+        .btn-start:active {
+            transform: scale(0.98);
+            background: #b91c1c;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 20px;
+            height: 20px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            opacity: 0.4;
+            transition: opacity 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close-btn:hover {
+            opacity: 0.8;
+        }
+
+        .close-btn svg {
+            width: 12px;
+            height: 12px;
+            stroke: white;
+            stroke-width: 2;
+        }
+    </style>
+</head>
+<body>
+    <div class="notification-container">
+        <button class="close-btn" id="cancelBtn" title="Закрыть">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round">
+                <path d="M18 6L6 18M6 6l12 12"/>
+            </svg>
+        </button>
+        <div class="icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M23 7l-7 5 7 5V7z"/>
+                <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+            </svg>
+        </div>
+        <div class="text-content">
+            <div class="platform" id="platform">Встреча</div>
+            <div class="subtitle">Начать запись?</div>
+        </div>
+        <button class="btn-start" id="startBtn">Начать</button>
+    </div>
+
+    <script>
+        // Receive meeting info
+        if (window.electronAPI && window.electronAPI.onMeetingInfo) {
+            window.electronAPI.onMeetingInfo((meetingInfo) => {
+                const platformElement = document.getElementById('platform');
+                if (platformElement) {
+                    platformElement.textContent = meetingInfo.platform;
+                }
+            });
+        }
+
+        // Handle button clicks
+        const startBtn = document.getElementById('startBtn');
+        const cancelBtn = document.getElementById('cancelBtn');
+
+        if (startBtn) {
+            startBtn.addEventListener('click', () => {
+                if (window.electronAPI && window.electronAPI.startRecording) {
+                    window.electronAPI.startRecording();
+                }
+            });
+        }
+
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', () => {
+                if (window.electronAPI && window.electronAPI.cancelNotification) {
+                    window.electronAPI.cancelNotification();
+                }
+            });
+        }
+
+        // Prevent context menu
+        document.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+        });
+    </script>
+</body>
+</html>

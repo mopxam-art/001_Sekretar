@@ -1,0 +1,19 @@
+node_modules/
+**/node_modules/
+dist/
+**/dist/
+dist-electron/
+**/dist-electron/
+release/
+**/release/
+win-unpacked/
+**/win-unpacked/
+*.log
+.vite/
+*.exe
+*.zip
+*.tar.gz
+*.7z
+Отправка/
+Pero Groq/src/recovered_history.json
+Pero Groq/src/stats_archive_*.json
