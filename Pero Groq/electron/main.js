@@ -8,6 +8,13 @@ const { app, powerMonitor, ipcMain } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
+// Гарантируем единое имя приложения и путь к userData
+app.setName('pero-blitz-pro');
+try {
+  const customUserData = path.join(app.getPath('appData'), 'pero-blitz-pro');
+  app.setPath('userData', customUserData);
+} catch (e) {}
+
 let initMain;
 try {
   ({ initMain } = require('electron-audio-loopback'));
@@ -218,6 +225,18 @@ function registerMainHandlers() {
       return { success: true, text };
     } catch (err) {
       console.error('[API] Transcription error:', err.message);
+      try {
+        const { Notification } = require('electron');
+        if (Notification.isSupported()) {
+          const isKeyErr = err.message.toLowerCase().includes('api key') || err.message.toLowerCase().includes('api_key');
+          new Notification({
+            title: 'Pero Blitz PRO — Ошибка',
+            body: isKeyErr 
+              ? 'Ошибка API: Неверный или отсутствующий Groq API ключ. Откройте Настройки приложения.'
+              : `Ошибка распознавания речи: ${err.message.substring(0, 80)}`
+          }).show();
+        }
+      } catch (_) {}
       return { success: false, error: err.message };
     }
   });

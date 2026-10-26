@@ -1,7 +1,12 @@
 /**
- * SecureStore — хранилище настроек Sekretar
- * Упрощённая версия SpeakFlow secureStore — только Groq API ключ
+ * SecureStore — локальное защищенное хранилище настроек и API-ключей Pero Blitz PRO.
+ * Хранит Groq API ключ с шифрованием AES-256 на основе параметров локальной машины.
  */
+
+const fs = require('fs');
+const path = require('path');
+const os = require('os');
+const crypto = require('crypto');
 
 let Store;
 try {
@@ -25,21 +30,40 @@ try {
   };
 }
 
-const crypto = require('crypto');
-const { machineIdSync } = require('node-machine-id');
-
+// Надежный детерминированный ключ шифрования (без внешних команд, устойчив в Electron и Node)
 function generateEncryptionKey() {
   try {
-    const machineId = machineIdSync(true);
-    const secret = 'Sekretar-2026-Secure-Storage';
-    return crypto.createHash('sha256').update(machineId + secret).digest('hex').substring(0, 32);
+    const raw = [
+      process.env.COMPUTERNAME || os.hostname(),
+      process.env.USERNAME || (os.userInfo && os.userInfo().username) || 'pero_user',
+      os.platform(),
+      'Sekretar-2026-Secure-Storage'
+    ].join(':');
+    return crypto.createHash('sha256').update(raw).digest('hex').substring(0, 32);
   } catch {
     return 'sekretar-fallback-key-2026-dev!!';
   }
 }
 
+// Единый детерминированный путь к директории конфигурации pero-blitz-pro
+function getResolvedCwd() {
+  const base = process.env.APPDATA || (process.platform === 'darwin' ? path.join(os.homedir(), 'Library', 'Application Support') : path.join(os.homedir(), '.config'));
+  return path.join(base, 'pero-blitz-pro');
+}
+
+const resolvedCwd = getResolvedCwd();
+try {
+  if (!fs.existsSync(resolvedCwd)) {
+    fs.mkdirSync(resolvedCwd, { recursive: true });
+  }
+} catch (e) {
+  console.warn('[SecureStore] Failed to ensure cwd exists:', e.message);
+}
+
 const store = new Store({
   name: 'pero-blitz-pro-config',
+  configName: 'pero-blitz-pro-config',
+  cwd: resolvedCwd,
   encryptionKey: generateEncryptionKey(),
   clearInvalidConfig: true,
   schema: {
@@ -117,10 +141,15 @@ const store = new Store({
   }
 });
 
-// Device fingerprinting
+// Device fingerprinting с безопасным fallback
 function getDeviceFingerprint() {
-  const os = require('os');
-  const machineId = machineIdSync(true);
+  let machineId = 'default-machine-id';
+  try {
+    const { machineIdSync } = require('node-machine-id');
+    machineId = machineIdSync(true);
+  } catch {
+    machineId = process.env.COMPUTERNAME || os.hostname();
+  }
 
   const fingerprint = {
     machineId,
@@ -129,7 +158,7 @@ function getDeviceFingerprint() {
     cpus: os.cpus().length,
     totalMemory: Math.floor(os.totalmem() / 1024 / 1024 / 1024),
     hostname: crypto.createHash('sha256').update(os.hostname()).digest('hex'),
-    username: crypto.createHash('sha256').update(os.userInfo().username).digest('hex')
+    username: crypto.createHash('sha256').update((os.userInfo && os.userInfo().username) || 'user').digest('hex')
   };
 
   return crypto.createHash('sha256').update(JSON.stringify(fingerprint)).digest('hex');
@@ -153,7 +182,6 @@ function verifyDevice() {
   return true;
 }
 
-// Дефолтные настройки (совпадают с SpeakFlow)
 const DEFAULTS = {
   hotkey: 'CommandOrControl+Alt',
   hotkeyMode: 'toggle',
@@ -189,14 +217,21 @@ const secureStore = {
 
   // === GROQ API KEY ===
   saveGroqApiKey(key) {
-    store.set('groqApiKey', key);
-    console.log('[SecureStore] Groq API key saved');
+    if (!key || typeof key !== 'string') {
+      store.set('groqApiKey', '');
+      return;
+    }
+    const cleanKey = key.trim();
+    store.set('groqApiKey', cleanKey);
+    console.log('[SecureStore] Groq API key saved successfully');
   },
 
   getGroqApiKey() {
     const key = store.get('groqApiKey', null);
-    if (!key || key.trim() === '') return 'gsk_YOUR_GROQ_API_KEY_HERE';
-    return key;
+    if (!key || typeof key !== 'string') return null;
+    const clean = key.trim();
+    if (clean === '' || clean === 'gsk_YOUR_GROQ_API_KEY_HERE') return null;
+    return clean;
   },
 
   hasGroqApiKey() {
@@ -209,11 +244,9 @@ const secureStore = {
     const saved = store.get('settings', {});
     const merged = { ...DEFAULTS, ...saved };
 
-    // Если useProxy явно выключен пользователем (false) — соединяемся напрямую без прокси
     if (merged.useProxy === false) {
       merged.httpProxy = '';
     } else {
-      // Иначе используем сохраненный прокси или дефолтный 100.86.75.16:8888
       if (!merged.httpProxy || merged.httpProxy.trim() === '') {
         merged.httpProxy = process.env.GROQ_PROXY || 'http://100.86.75.16:8888';
       }
@@ -257,15 +290,17 @@ const secureStore = {
   },
 
   isAuthenticated() {
-    if (!verifyDevice()) return false;
-    const tokens = store.get('tokens');
-    return !!(tokens && tokens.accessToken);
+    try {
+      if (!verifyDevice()) return false;
+      const tokens = store.get('tokens');
+      return !!(tokens && tokens.accessToken);
+    } catch {
+      return false;
+    }
   },
 
   clearAll() { store.clear(); },
-  getMachineId() {
-    try { return machineIdSync(true); } catch { return 'unknown'; }
-  },
+  getStorePath() { return store.path; },
   getFingerprint() {
     return getDeviceFingerprint();
   }

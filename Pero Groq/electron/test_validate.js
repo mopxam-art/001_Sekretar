@@ -1,9 +1,12 @@
 const groqService = require('./groqService');
+const secureStore = require('./secureStore');
+
+groqService.init(secureStore);
 
 async function test() {
-  const key = 'gsk_YOUR_GROQ_API_KEY_HERE';
-  console.log('Testing key...');
-  const result = await groqService.validateApiKey(key);
+  const key = secureStore.getGroqApiKey();
+  console.log('Testing stored key:', key ? `${key.substring(0, 8)}...` : 'None');
+  const result = await groqService.testConnection();
   console.log('Result:', result);
 }
 

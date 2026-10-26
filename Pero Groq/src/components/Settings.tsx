@@ -4,7 +4,7 @@ import './Settings.css';
 const ipc = (window as any).electron?.ipcRenderer;
 
 interface Props {
-  onApiKeySaved: () => void;
+  onApiKeySaved?: () => void;
 }
 
 interface AppSettings {
@@ -201,7 +201,12 @@ export default function Settings({ onApiKeySaved }: Props) {
         setSaveResult('ok');
         setKeyPreview(`${apiKey.substring(0, 8)}...${apiKey.slice(-4)}`);
         setApiKey('');
-        setTimeout(() => { setSaveResult(null); onApiKeySaved(); }, 1200);
+        setTimeout(() => {
+          setSaveResult(null);
+          if (typeof onApiKeySaved === 'function') {
+            onApiKeySaved();
+          }
+        }, 1200);
       } else {
         setSaveResult('error');
         setSaveError(result?.error || 'Неверный ключ');
@@ -286,9 +291,13 @@ export default function Settings({ onApiKeySaved }: Props) {
             Прямой доступ к Groq Cloud (Whisper Large v3 + Qwen). Ключ хранится локально в зашифрованном виде.
           </div>
 
-          {keyPreview && (
+          {keyPreview ? (
             <div className="current-key">
               <span>Текущий ключ: <code>{keyPreview}</code></span>
+            </div>
+          ) : (
+            <div style={{ margin: '8px 0 12px', padding: '10px 14px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '8px', color: '#f87171', fontSize: '13px' }}>
+              ⚠️ Ключ не установлен. Введите ваш Groq API ключ ниже, чтобы диктовка работала.
             </div>
           )}
 

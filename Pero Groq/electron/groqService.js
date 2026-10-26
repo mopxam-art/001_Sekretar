@@ -30,11 +30,15 @@ function init(secureStore) {
 }
 
 function getApiKey() {
-  if (_apiKey) return _apiKey;
+  if (_apiKey && _apiKey !== 'gsk_YOUR_GROQ_API_KEY_HERE') return _apiKey;
   if (_secureStore) {
-    _apiKey = _secureStore.getGroqApiKey();
+    const key = _secureStore.getGroqApiKey();
+    if (key && key !== 'gsk_YOUR_GROQ_API_KEY_HERE') {
+      _apiKey = key;
+      return _apiKey;
+    }
   }
-  return _apiKey;
+  return null;
 }
 
 function setApiKey(key) {
@@ -358,19 +362,25 @@ async function translateText(text, targetLang = 'en') {
  * @returns {Promise<{valid: boolean, error?: string}>}
  */
 async function validateApiKey(key) {
+  if (!key || typeof key !== 'string' || !key.trim().startsWith('gsk_') || key.trim() === 'gsk_YOUR_GROQ_API_KEY_HERE') {
+    return { valid: false, error: 'Ключ должен начинаться с gsk_ и быть действительным.' };
+  }
+  const cleanKey = key.trim();
   const savedKey = _apiKey;
-  _apiKey = key;
+  _apiKey = cleanKey;
   try {
-    // Делаем запрос к списку моделей для проверки ключа
     await groqFetch('/openai/v1/models', {
       method: 'GET',
-    });
+    }, 0);
     return { valid: true };
   } catch (err) {
-    // Временно пропускаем строгую валидацию, так как иногда Groq API возвращает странные ошибки,
-    // но сам ключ при этом работает для транскрипции.
-    console.error('[Groq] Validation failed, but bypassing:', err.message);
-    return { valid: true };
+    _apiKey = savedKey;
+    console.error('[Groq] Validation failed:', err.message);
+    let errMsg = err.message || 'Ошибка проверки ключа';
+    if (errMsg.includes('Invalid API Key') || errMsg.includes('invalid_api_key')) {
+      errMsg = 'Неверный API ключ (Groq отклонил запрос). Проверьте ключ в console.groq.com.';
+    }
+    return { valid: false, error: errMsg };
   }
 }
 

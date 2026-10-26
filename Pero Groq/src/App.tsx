@@ -182,7 +182,7 @@ export default function App() {
       case 'help':
         return <HelpTab />;
       case 'settings':
-        return <Settings />;
+        return <Settings onApiKeySaved={() => {}} />;
       case 'referral':
         return <ReferralTab />;
       case 'subscription':
