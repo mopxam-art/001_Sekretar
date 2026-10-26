@@ -37,6 +37,7 @@ app.commandLine.appendSwitch('disable-sync');
 app.commandLine.appendSwitch('disable-translate');
 app.commandLine.appendSwitch('disable-features', 'CalculateNativeWinOcclusion');
 app.commandLine.appendSwitch('no-first-run');
+app.commandLine.appendSwitch('disable-gpu');
 app.disableHardwareAcceleration();
 
 if (process.platform === 'win32') {
