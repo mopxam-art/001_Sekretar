@@ -35,7 +35,7 @@ export default function Settings({ onApiKeySaved }: Props) {
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
 
   // Auto-updater states
-  const [appVersion, setAppVersion] = useState('1.0.2');
+  const [appVersion, setAppVersion] = useState('1.0.3');
   const [checkingUpdate, setCheckingUpdate] = useState(false);
   const [updateStatus, setUpdateStatus] = useState<{
     type: 'idle' | 'checking' | 'available' | 'not-available' | 'downloading' | 'downloaded' | 'error';
