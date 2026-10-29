@@ -87,28 +87,82 @@ function setupHotkeysCallbacks(hotkeysManager, windowManager, options) {
 }
 
 /**
- * Настроить обработчики системных событий (resume/suspend)
+ * Настроить обработчики системных событий (resume/suspend/lock/unlock)
  */
 function setupSystemEventHandlers(app, powerMonitor, windowManager, hotkeysManager) {
-  powerMonitor.on('resume', () => {
-    console.log('[EventHandlers] System resumed - reinitializing hotkeys');
-    if (hotkeysManager) {
-      hotkeysManager.setupKeyboardListener();
-    }
-    // Fix for black screen on wake up
+  const resetAppOnSuspend = (reason) => {
+    console.log(`[EventHandlers] System power event: ${reason} - resetting active recording and keys`);
+    sharedState.setIsRecording(false);
+    
     if (windowManager) {
       const mw = windowManager.getMainWindow();
-      if (mw && !mw.isDestroyed() && mw.isVisible()) {
-        console.log('[EventHandlers] Forcing window repaint to fix black screen');
-        mw.hide();
-        setTimeout(() => {
-          if (!mw.isDestroyed()) mw.showInactive();
-        }, 100);
+      if (mw && !mw.isDestroyed()) {
+        mw.webContents.send('reset-recording-state');
+        mw.webContents.send('stop-recording');
       }
     }
-  });
 
-  console.log('[EventHandlers] System event handlers configured');
+    if (hotkeysManager) {
+      try {
+        hotkeysManager.keysPressed.clear();
+        hotkeysManager.recordingHotkeyPressed = false;
+        hotkeysManager.translationHotkeyPressed = false;
+        hotkeysManager.undoHotkeyPressed = false;
+        hotkeysManager._hotkeyKeysHeld = false;
+        hotkeysManager.killWinKeyServerProcesses();
+      } catch (err) {
+        console.warn('[EventHandlers] Error cleaning hotkeys on suspend:', err.message);
+      }
+    }
+  };
+
+  const reinitOnWake = (reason) => {
+    console.log(`[EventHandlers] System wake event: ${reason} - scheduling staggered reinitialization`);
+    sharedState.setIsRecording(false);
+
+    if (hotkeysManager) {
+      hotkeysManager.listenerRestartCount = 0;
+      hotkeysManager.lastEventTime = Date.now();
+    }
+
+    // Первый шаг через 1000мс (ждем перехода Windows из Winlogon в интерактивный рабочий стол)
+    setTimeout(() => {
+      console.log(`[EventHandlers] Wake reinitialization step 1 (+1000ms for ${reason})`);
+      if (hotkeysManager) {
+        hotkeysManager.killWinKeyServerProcesses();
+        hotkeysManager.setupKeyboardListener();
+      }
+
+      if (windowManager) {
+        const mw = windowManager.getMainWindow();
+        if (mw && !mw.isDestroyed()) {
+          mw.webContents.send('reset-recording-state');
+          if (mw.isVisible()) {
+            mw.hide();
+            setTimeout(() => {
+              if (!mw.isDestroyed()) mw.showInactive();
+            }, 100);
+          }
+        }
+      }
+    }, 1000);
+
+    // Второй контрольный шаг через 2500мс для гарантированного захвата хука
+    setTimeout(() => {
+      console.log(`[EventHandlers] Wake reinitialization step 2 (+2500ms for ${reason})`);
+      if (hotkeysManager && !hotkeysManager.isListenerAlive()) {
+        console.warn('[EventHandlers] Hotkeys listener not alive after wake, forcing restart');
+        hotkeysManager.setupKeyboardListener();
+      }
+    }, 2500);
+  };
+
+  powerMonitor.on('suspend', () => resetAppOnSuspend('suspend'));
+  powerMonitor.on('lock-screen', () => resetAppOnSuspend('lock-screen'));
+  powerMonitor.on('resume', () => reinitOnWake('resume'));
+  powerMonitor.on('unlock-screen', () => reinitOnWake('unlock-screen'));
+
+  console.log('[EventHandlers] Advanced powerMonitor event handlers configured (suspend, lock, resume, unlock)');
 }
 
 module.exports = {

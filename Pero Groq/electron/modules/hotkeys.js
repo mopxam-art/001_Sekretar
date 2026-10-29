@@ -322,6 +322,16 @@ class HotkeysManager {
           });
           return false;
         }
+
+        // Active OS PID probe: verifies process still physically exists in OS
+        if (serverProcess.pid) {
+          try {
+            process.kill(serverProcess.pid, 0);
+          } catch (e) {
+            console.log('[Hotkeys] Health check: serverProcess PID no longer exists in OS:', serverProcess.pid);
+            return false;
+          }
+        }
       }
 
       // Additional check: if no events for a very long time (5 minutes),

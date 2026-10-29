@@ -184,14 +184,34 @@ export function useAudioRecorder({ canRecord, onTranscription }: UseAudioRecorde
       }
     };
 
+    const resetRecordingState = () => {
+      console.log('[useAudioRecorder] Resetting recording state (system wake/suspend)');
+      if (maxDurationTimeout.current) {
+        clearTimeout(maxDurationTimeout.current);
+      }
+      if (mediaRecorder.current && mediaRecorder.current.state !== 'inactive') {
+        try {
+          mediaRecorder.current.stop();
+        } catch {}
+      }
+      isGlobalRecording = false;
+      isGlobalProcessing = false;
+      setIsRecording(false);
+      ipc.send('recording-stopped');
+      ipc.send('processing-stopped');
+    };
+
     const unsubStart = ipc.on('start-recording', startRecording);
     const unsubStop = ipc.on('stop-recording', stopRecording);
+    const unsubReset = ipc.on('reset-recording-state', resetRecordingState);
 
     return () => {
       if (typeof unsubStart === 'function') unsubStart();
       if (typeof unsubStop === 'function') unsubStop();
+      if (typeof unsubReset === 'function') unsubReset();
       ipc.removeListener('start-recording', startRecording);
       ipc.removeListener('stop-recording', stopRecording);
+      ipc.removeListener('reset-recording-state', resetRecordingState);
     };
   }, []);
 
